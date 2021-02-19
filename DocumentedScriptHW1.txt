@@ -1,0 +1,11 @@
+#Documented Script for Homework 1 in BIOL792 II
+
+# First, I went to my Desktop directory : cd Desktop/
+# I created a new directory : mkdir Homework
+# I entered into that new directory : cd Homework/
+# I created another directory inside that Homework directory : mkdir Practice
+# I entered into that directory : cd Practice/
+# I initialized that directory : git init
+# On github, I created a new repository by clicking on new repository, gave it a name, clicked "Add a README file"
+# and then created the repository. I named it HomeworkBIOL792. 
+# I clicked on that newly created repository, and copied the url. 
