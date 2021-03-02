@@ -91,10 +91,12 @@ sort MyOutputFile.fasta | uniq | wc -l (There are 100 unique lines)
 mkdir Hutia2
 for f in *.fasta; do echo copying ${f}; cp ${f} Hutia2/; done;
 7.	Write a bash script with in-line documentation (hint #) to show how to run a made up python program (script) called 'find_taxa.py' on set of files ending in ‘.fasta’. Show in the script how to run the program on each of those files. What is the name of your script? Type the script here.
-#!/usr/bin/python3
-#Find Taxa- script name.
-#Find_taxa.py will run on files ending in “.fasta”.
+#!/usr/bin/bash
 #Each file will be ran using a for loop. This will cut back on time. 
+for file in *.fasta; #Find Taxa- script name.
+do
+python3 python_script.py $file #Find_taxa.py will run on files ending in “.fasta”.
+done
 8.	From the Hutia_DNA.fasta file tell me how on how many lines do we find the pattern ‘GAGA’. What was the code used to find this? 
 304806 lines have the pattern “GAGA”.
 grep -c “GAGA” Hutia_DNA.fasta (from Hutia directory)
