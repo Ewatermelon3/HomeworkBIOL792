@@ -19,4 +19,9 @@
 # git commit -m "commit",
 # git push origin master
 # Now my homework was in my repository on github! I will follow this same process for this script. 
+<<<<<<< HEAD
 # Just to double check everything :  git status, as well as git log.
+=======
+
+### excellent work!
+>>>>>>> c9bd829f4e6238a700ef2244f24d4d14bcf57429
