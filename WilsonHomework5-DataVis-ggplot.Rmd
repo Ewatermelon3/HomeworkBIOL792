@@ -1,0 +1,314 @@
+---
+title: "Homework5-DataVis-ggplot"
+author: "Ellen Wilson"
+date: 'DUE: Thursday, March 25'
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<br/>
+
+#### Necessary items:
+- **libraries:** tidyverse, ggsci, ggforce, patchwork, Hmisc
+- **files:** bloom_df.csv, hw_task2_blank.png
+
+Within RStudio you can directly edit these blocks of code and turn in your homework that way with your code and figures printed.   
+I **HIGHLY** recommend getting your code to work in a normal R script then just copy and pasting the final code over to this document
+
+**First: import libraries, set your working directory, and read in bloom_df**  
+```{r init, message=FALSE, warning=FALSE}
+library(tidyverse) 
+library(ggforce) 
+library(ggsci)
+library(patchwork)
+library(Hmisc)
+install.packages("scatterpie")
+
+setwd("/Users/ellenwilson/Desktop/Homework/Practice/PythonPractice/Data_Science_For_Biology_II/Part.3_DataVisualization/1-ggplot") #change to match your ggplot directory
+
+bloom_df <- read.csv('bloom_df.csv')
+```
+
+### bloom_df contents
+- **taxa:** genus_species
+- **genus** 
+- **species** 
+- **logbodysize** 
+- **trophic_position**
+- **reg:** diadromous or non-diadromous
+
+Let's take a peak and look at the structure
+```{r bloom_df}
+bloom_df[1:5,]
+str(bloom_df)
+```
+
+### Graphical tasks
+
+This next tasks are going to ask you to make a series of figures. For each one, I would like you to make all of them *look good*. Change the theme around, change the axis labels, etc. Additionally, each of these will use the **reg** column which has 2 factors. Change the color and/or shape of them both. 
+
+### Task 1: Continuous vs. continuous plot
+
+Create two scatterplots of logbodysize vs. trophic_position grouped by reg
+
+##### First plot: 
+- a 2 trend lines (method = 'lm'), one for each reg variable
+
+```{r 1.1}
+ggplot(data=bloom_df,aes(x=logbodysize,y=trophic_position,colour=reg)) + 
+    geom_point(size=5, shape=15) + theme_dark() +
+    stat_smooth() + scale_color_manual(values=c("pink", "lightblue"))
+```
+
+##### Second plot 
+- a single trend line for the whole model
+
+```{r 1.2}
+ggplot(data=bloom_df,aes(x=logbodysize,y=trophic_position)) + 
+    geom_point(aes(colour=reg)) + 
+    stat_smooth(method='lm',linetype='dotdash',colour='slategray',size=1) + theme_void() +  scale_color_manual(values=c("navy", "magenta1"))
+```
+
+### Task 2: Continuous vs. categorical
+
+##### The layout will be: 
+- 2 panels: trophic_position and logbodysize  
+- x axis: reg  
+- y axis: value of trophic_position and logbodysize  
+
+##### Create 4 plots:  
+- bar and error bars (mean and 95% conf. int.)  
+- point and error bars (mean and 95% conf. int.)  
+- box plots  
+- raw data + point and error bars (mean and 95% conf. int.)  
+
+All these plots should have the same general layout but change the type of plot to visualize the data. 
+
+**HINT:** logbodysize and trophic_position need to be turned into long format  
+
+#Original
+
+bloom_sum_df <- bloom_df %>%
+    group_by(reg) %>%
+    summarise(logbodysize_mean = mean(logbodysize, na.rm = TRUE), #log mean
+              logbodysize_sd = sd(logbodysize, na.rm = TRUE), #log standard deviation
+              logbodysize_n = n(), #log count
+              trophic_position_mean = mean(trophic_position, na.rm = TRUE), #trophic mean
+              trophic_position_sd = sd(trophic_position, na.rm = TRUE),  #trophic standard deviation
+              trophic_position_n = n()) %>% #trophic count 
+    mutate(logbodysize_se = logbodysize_sd / sqrt(logbodysize_n), #log standard error
+           logbodysize_lower.ci = logbodysize_mean - qt(1 - (0.05 / 2), logbodysize_n - 1) * logbodysize_se, #log lower 95% confidence interval
+           logbodysize_upper.ci = logbodysize_mean + qt(1 - (0.05 / 2), logbodysize_n - 1) * logbodysize_se, #log upper 95% confidence interval
+           trophic_position_se = trophic_position_sd / sqrt(trophic_position_n), #trophic standard error
+           trophic_position_lower.ci = trophic_position_mean - qt(1 - (0.05 / 2), trophic_position_n - 1) * trophic_position_se, #trophic lower 95% confidence interval
+           trophic_position_upper.ci = trophic_position_mean + qt(1 - (0.05 / 2), trophic_position_n - 1) * trophic_position_se) #trohpic upper 95% confidence interval
+
+bloom_sum_df
+
+#make long
+#make long
+logbodysize_sum_df <- bloom_df %>%
+  group_by(reg) %>%
+  summarise(mean = mean(logbodysize, na.rm = TRUE), #log mean
+            sd = sd(logbodysize, na.rm = TRUE), #log standard deviation
+            n = n()) %>% #log count
+  mutate(se = sd / sqrt(n), #log standard error
+         ci = 1.96 * se) #log 95% confidence interval
+logbodysize_sum_df$Clim <- 'logbodysize'
+
+trophic_position_sum_df <- bloom_df %>%
+  group_by(reg) %>%
+  summarise(mean = mean(trophic_position, na.rm = TRUE), #trophic mean
+            sd = sd(trophic_position, na.rm = TRUE), #trohpic standard deviation
+            n = n()) %>% #trohpic count
+  mutate(se = sd / sqrt(n), #trophic standard error
+         ci = 1.96*se) #trophic 95% confidence interval
+trophic_position_sum_df$Clim <- 'trophic_position'
+
+bloom_sum_df <- rbind(logbodysize_sum_df,trophic_position_sum_df)
+bloom_sum_df
+
+#examples from the primer:
+ggplot(data=bloom_sum_df,aes(x=reg,y=mean)) +
+    geom_bar(stat='identity') 
+
+ggplot(data=bloom_sum_df,aes(x=reg,y=mean,fill=Clim)) +
+    geom_bar(stat='identity')
+
+ggplot(data=bloom_sum_df,aes(x=reg,y=mean,fill=Clim)) +
+    geom_bar(stat='identity',position='dodge')
+    
+#making it pretty:
+ggplot(data=bloom_sum_df,aes(x=reg,y=mean,fill=Clim)) +
+    geom_bar(stat='identity',position='dodge', color = "red") + scale_fill_manual(values=c("#AC88FF", "#56B4E9"))+
+    theme_minimal()
+    
+ggplot(data=bloom_sum_df,aes(x=reg,y=mean,fill=Clim)) +
+    facet_wrap(~Clim,nrow=1,scales = 'free') + 
+    geom_bar(stat='identity') + 
+    geom_errorbar(aes(ymin = mean - ci, ymax = mean + ci)) + scale_fill_manual(values=c("#AC88FF", "#56B4E9"))+
+    theme_minimal()
+    
+ggplot(data=bloom_sum_df,aes(x=reg,y=mean,colour=Clim)) +
+    facet_wrap(~Clim,nrow=1,scales = 'free') + 
+    geom_point(size=5) + 
+    geom_errorbar(aes(ymin = mean - ci, ymax = mean + ci),colour='black') 
+    
+#make long data for temp and ppt
+bloom_long_df <- bloom_df %>% 
+    gather(key=Clim,value=mean,c(trophic_position, logbodysize))    
+    
+#big bar graph with errorbar  
+ggplot(data=bloom_long_df,aes(x=reg,y=mean,fill=Clim)) +
+    facet_wrap(~Clim,nrow=1,scales = 'free') +
+    stat_summary(fun = mean, geom = "bar") +
+    stat_summary(fun.data = mean_cl_boot, geom = "errorbar",color='black') 
+    
+#large error bar, chosing my own colors 
+ggplot(data=bloom_long_df,aes(x=reg,y=mean,colour=Clim)) +
+    facet_wrap(~Clim,nrow=1,scales = 'free') +
+    stat_summary(fun.data = mean_cl_boot, geom = "errorbar",color='black') + 
+    stat_summary(fun = mean, geom = "point",size=5) + scale_color_manual(values=c("#AC88FF", "#56B4E9"))+
+    theme_minimal()
+
+#boxplot    
+ggplot(data=bloom_long_df,aes(x=reg,y=mean,fill=Clim)) +
+    facet_wrap(~Clim,nrow=1,scales = 'free') +
+    geom_boxplot() + scale_fill_manual(values=c("#AC88FF", "#56B4E9"))+
+    theme_minimal()
+    
+#violin plot with own colors
+ggplot(data=bloom_long_df,aes(x=reg,y=mean,fill=Clim)) +
+    facet_wrap(~Clim,nrow=1,scales = 'free') +
+    geom_violin(draw_quantiles = 0.5) + scale_fill_manual(values=c("mediumpurple1", "peachpuff"))
+    
+#raw data    
+ggplot(data=bloom_long_df,aes(x=reg,y=mean,colour=Clim)) +
+    facet_wrap(~Clim,nrow=1,scales = 'free') +
+    geom_point(size=4) +
+    stat_summary(fun.data = mean_cl_boot, geom = "errorbar",color='black') + 
+    stat_summary(fun = mean, geom = "point",size=5,colour='black') + scale_color_manual(values=c("skyblue", "violet"))
+    
+#same figure but points jittered in shape of densities, different shape
+ggplot(data=bloom_long_df,aes(x=reg,y=mean,colour=Clim)) +
+    facet_wrap(~Clim,nrow=1,scales = 'free') +
+    geom_sina(size=3, shape= 4) +
+    stat_summary(fun.data = mean_cl_boot, geom = "errorbar",color='royalblue4') + 
+    stat_summary(fun = mean, geom = "point",size=5,colour='royalblue4') + scale_color_manual(values=c("skyblue", "khaki1"))
+    
+##### Example layout:   
+![sample layout for task2](hw_task2_blank.png){width=50%}
+
+```{r 2.1}
+ggplot(data=bloom_sum_df,aes(x=reg,y=mean,fill=Clim)) +
+    facet_wrap(~Clim,nrow=1,scales = 'free') + 
+    geom_bar(stat='identity') + 
+    geom_errorbar(aes(ymin = mean - ci, ymax = mean + ci)) + scale_fill_manual(values=c("lawngreen", "olivedrab"))+
+    theme_minimal()
+```
+
+```{r 2.2}
+ggplot(data=bloom_long_df,aes(x=reg,y=mean,colour=Clim)) +
+    facet_wrap(~Clim,nrow=1,scales = 'free') +
+    stat_summary(fun.data = mean_cl_boot, geom = "errorbar",color='black') + 
+    stat_summary(fun = mean, geom = "point",size=5, shape=23) + scale_color_manual(values=c("blueviolet", "hotpink3")) 
+```
+
+```{r 2.3}
+ggplot(data=bloom_long_df,aes(x=reg,y=mean,fill=Clim)) +
+    facet_wrap(~Clim,nrow=1,scales = 'free') +
+    geom_boxplot() + scale_fill_manual(values=c("#AC88FF", "#56B4E9"))+
+    theme_minimal()
+```
+
+```{r 2.4}
+#simple
+ggplot(data=bloom_long_df,aes(x=reg,y=mean,colour=Clim)) +
+    facet_wrap(~Clim,nrow=1,scales = 'free') +
+    geom_sina(size=3) +
+    stat_summary(fun.data = mean_cl_boot, geom = "errorbar",color='royalblue4') + 
+    stat_summary(fun = mean, geom = "point",size=5,colour='royalblue4') + scale_color_manual(values=c("skyblue", "tomato4"))
+
+#more complicated
+ggplot(data=bloom_long_df,aes(x=reg,y=mean,colour=Clim)) +
+    facet_wrap(~Clim,nrow=1,scales = 'free') +
+    geom_sina(size=4, shape=18) +
+    stat_summary(fun.data = mean_cl_boot, geom = "errorbar",color='black') + 
+    stat_summary(fun = mean, geom = "point",size=4,colour='black') + scale_color_manual(values=c("gold", "darkviolet")) +  theme_bw() +
+    theme(legend.position = 'None', 
+          plot.title = element_text(size = 14, colour="black",face = "bold"),
+          axis.text = element_text(size=10),
+          axis.title = element_text(size = 15, colour="black",face = "bold"),
+          axis.title.x = element_blank(),
+          panel.border = element_rect(size = 1.5, colour = "black"),
+          legend.title = element_text(size = 10, colour="black",face = "bold",vjust = 1),
+          legend.text = element_text(size=20),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank()) +
+    ggtitle("Mean Distribution of Log Bodysize and Trophic Position")
+```
+#transparency? alpha=0.8
+
+### Task 3: layering your plots
+
+Make any two figures with the bloom_df! Can be something we've done or something completely different. Make one TERRIBLE figure and one GREAT figure.
+
+Put them together using *patchwork* or *ggarrange* 
+
+
+```{r 3}
+#plot 3
+```
+#log good plot
+log_df <- bloom_long_df[which(bloom_long_df$Clim == 'logbodysize'),]
+log_plot <- ggplot(data=log_df,aes(x=reg,y=mean,fill=reg)) +
+    geom_sina(size=6,pch=21,colour='blue') +
+    stat_summary(fun.data = mean_cl_boot, geom = "errorbar",color='pink',width = 0.3,size=1.4) + 
+    stat_summary(fun = mean, geom = "point",size=6,colour='pink',pch=24,fill='pink') +
+    scale_fill_npg() + 
+    ylab('Log Body Size') + 
+    theme_bw() +
+    theme(legend.position = 'None', 
+          plot.title = element_text(size = 14, colour="black",face = "bold"),
+          axis.text = element_text(size=14),
+          axis.title = element_text(size = 14, colour="black",face = "bold"),
+          axis.title.x = element_blank(),
+          panel.border = element_rect(size = 1.5, colour = "black"),
+          legend.title = element_text(size = 14, colour="black",face = "bold",vjust = 1),
+          legend.text = element_text(size=14),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank()) + scale_fill_manual(values=c("lawngreen", "turquoise2"))
+log_plot
+
+#Trophic good plot
+trophic_df <- bloom_long_df[which(bloom_long_df$Clim == 'trophic_position'),]
+trophic_plot <- ggplot(data=log_df,aes(x=reg,y=mean,fill=reg)) +
+    geom_sina(size=6,pch=21,colour='yellow') +
+    stat_summary(fun.data = mean_cl_boot, geom = "errorbar",color='red',width = 0.3,size=1.4) + 
+    stat_summary(fun = mean, geom = "point",size=6,colour='red',pch=24,fill='red') +
+    scale_fill_npg() + 
+    ylab('Trophic Position') + 
+    theme_bw() +
+    theme(legend.position = 'None', 
+          plot.title = element_text(size = 14, colour="black",face = "bold"),
+          axis.text = element_text(size=14),
+          axis.title = element_text(size = 14, colour="black",face = "bold"),
+          axis.title.x = element_blank(),
+          panel.border = element_rect(size = 1.5, colour = "black"),
+          legend.title = element_text(size = 14, colour="black",face = "bold",vjust = 1),
+          legend.text = element_text(size=14),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank()) + scale_fill_manual(values=c("pink", "purple"))
+trophic_plot
+
+#Ugly plot
+ ggplot(data=bloom_sum_df,aes(x=reg,y=mean,fill=Clim)) +
+    geom_bar(stat='identity',position='dodge') + 
+    ggtitle('Bodysize and trohpic position or something like that') + 
+    theme(plot.title = element_text(size = 5, colour="red",face = "bold")) +scale_fill_manual(values=c("gray92", "gray91"))
+    
+#add them all together:
+trophic_plot + log_plot + uglyplot
