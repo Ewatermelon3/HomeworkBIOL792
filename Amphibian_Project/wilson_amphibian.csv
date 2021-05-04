@@ -1,0 +1,12 @@
+﻿taxa,genus,species,nucleotides,matching_Bufo_gargarizans,matching_Ambystoma_mexicanum,matching_Rana_temporaria,location,concern
+Bufo_gargarizans,Bufo,gargarizans,"17,277","17,277","10,658","10,835",Asia,LC
+Rana_amurensis,Rana,amurensis,"18,470","9,645","9,006","11,773",Asia,LC
+Lithobates_sylvaticus,Lithobates,sylvaticus,"17,343","11,479","10,509","12,786",NAmerica,LC
+Rana_draytonii,Rana,draytonii,"17,805","11,400","10,499","13,033",NAmerica,V
+Rana_dybowskii,Rana,dybowskii,"18,864","10,668","9,865","13,361",Asia,LC
+Rana_temporaria,Rana,temporaria,"16,061","10,835","10,044","16,061",Europe,LC
+Ambystoma_tigrinum,Ambystoma,tigrinum,"16,375","10,603","15,624","10,704",NAmerica,LC
+Dryophytes_versicolor,Dryophytes,versicolor,"18,800","13,024","10,866","10,970",NAmerica,LC
+Ambystoma_mexicanum,Ambystoma,mexicanum,"16,369","10,658","16,369","10,044",NAmerica,CE
+Homo_sapiens,Homo,sapiens,"16,569","10,055","9,963","9,855",ALL,LC
+Xenopus_laevis,Xenopus,laevis,"17,553","10,594","10,879","10,309",Africa,LC
